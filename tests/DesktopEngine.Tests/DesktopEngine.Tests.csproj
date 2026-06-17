@@ -22,6 +22,7 @@
     <ProjectReference Include="..\..\src\DesktopEngine.Scripting\DesktopEngine.Scripting.csproj" />
     <ProjectReference Include="..\..\src\DesktopEngine.Harness\DesktopEngine.Harness.csproj" />
     <ProjectReference Include="..\..\src\DesktopEngine.Platform.Abstractions\DesktopEngine.Platform.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\DesktopEngine.Platform.Windows\DesktopEngine.Platform.Windows.csproj" />
   </ItemGroup>
 
 </Project>
