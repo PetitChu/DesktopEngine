@@ -1,16 +1,37 @@
+using System;
+using System.Drawing;
+using System.IO;
+using System.Windows.Forms;
+
 namespace HarnessVictim;
 
-static class Program
+// Usage: HarnessVictim.exe <x> <y> <width> <height> <logPath>
+internal static class Program
 {
-    /// <summary>
-    ///  The main entry point for the application.
-    /// </summary>
     [STAThread]
-    static void Main()
+    private static void Main(string[] args)
     {
-        // To customize application configuration such as set high DPI settings or default font,
-        // see https://aka.ms/applicationconfiguration.
+        if (args.Length < 5) { Console.Error.WriteLine("need: x y w h logPath"); return; }
+        int x = int.Parse(args[0]), y = int.Parse(args[1]), w = int.Parse(args[2]), h = int.Parse(args[3]);
+        string log = args[4];
+        File.WriteAllText(log, ""); // truncate
+
         ApplicationConfiguration.Initialize();
-        Application.Run(new Form1());
-    }    
+        var form = new Form
+        {
+            FormBorderStyle = FormBorderStyle.None,
+            StartPosition = FormStartPosition.Manual,
+            Location = new Point(x, y),
+            Size = new Size(w, h),
+            BackColor = Color.LightGreen,
+            ShowInTaskbar = false,
+            TopMost = false,
+        };
+        form.MouseDown += (_, e) =>
+        {
+            var sp = form.PointToScreen(e.Location);
+            File.AppendAllText(log, $"{sp.X},{sp.Y}{Environment.NewLine}");
+        };
+        Application.Run(form);
+    }
 }
