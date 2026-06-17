@@ -6,7 +6,7 @@
 
 **Architecture:** A minimal slice of the full repo. Pure-logic units (MoonSharp sandbox, headless Skia render-to-PNG, image diff, RPC protocol) are built with strict TDD and xUnit. The OS/visual behaviors (transparency, click-through) **cannot** be unit-tested — they are proven by *runtime acceptance checks* driven by the harness: launch the real app, drive synthetic input, capture screenshots, and read a "victim window" click log. This split is deliberate and matches the spec's dual-mode verification and the project rule "runtime data is ground truth." The chosen click-through mechanism is **layered window + WS_EX_TRANSPARENT toggled by cursor-over-sprite polling**; two alternatives (low-level mouse hook, `WM_NCHITTEST`) are documented as fallbacks evaluated in the decision record.
 
-**Tech Stack:** .NET 8, Avalonia 11.2.x (+ Avalonia.Skia), SkiaSharp 2.88.x, MoonSharp 2.0.0, xUnit, System.Drawing.Common (Windows-only harness capture), WinForms (victim-window tool). Win32 via P/Invoke. Windows-first; cross-platform projects keep `net8.0`, Windows-bound ones use `net8.0-windows`.
+**Tech Stack:** .NET 9 (SDK 9.0.x; spec allows .NET 8/9 — targeting net9.0 since only the .NET 9 SDK/runtime is installed), Avalonia 11.2.x (+ Avalonia.Skia), SkiaSharp 2.88.x, MoonSharp 2.0.0, xUnit, System.Drawing.Common (Windows-only harness capture), WinForms (victim-window tool). Win32 via P/Invoke. Windows-first; cross-platform projects keep `net9.0`, Windows-bound ones use `net9.0-windows`.
 
 **Scope guard (what M0 is NOT):** No game loop, no ECS, no power modes, no content-pack format, no save system, no DI/factory platform selection. Those are M1+. M0 builds only what's needed to clear the gate and stand up the harness.
 
@@ -17,15 +17,15 @@
 ```
 DesktopEngine.sln
 src/
-  DesktopEngine.Platform.Abstractions/   # IWindowEffects (net8.0)
-  DesktopEngine.Scripting/               # SandboxedScriptHost over MoonSharp (net8.0)
-  DesktopEngine.Platform.Windows/        # WindowsWindowEffects + ClickThroughController (net8.0-windows)
-  DesktopEngine.Host/                    # Avalonia app: transparent window, SkiaCanvas, CLI, RPC server (net8.0-windows)
-  DesktopEngine.Harness/                 # headless render, image diff, screen capture, input injection, RPC client (net8.0-windows)
+  DesktopEngine.Platform.Abstractions/   # IWindowEffects (net9.0)
+  DesktopEngine.Scripting/               # SandboxedScriptHost over MoonSharp (net9.0)
+  DesktopEngine.Platform.Windows/        # WindowsWindowEffects + ClickThroughController (net9.0-windows)
+  DesktopEngine.Host/                    # Avalonia app: transparent window, SkiaCanvas, CLI, RPC server (net9.0-windows)
+  DesktopEngine.Harness/                 # headless render, image diff, screen capture, input injection, RPC client (net9.0-windows)
 tools/
-  HarnessVictim/                         # WinForms exe that logs received clicks (net8.0-windows)
+  HarnessVictim/                         # WinForms exe that logs received clicks (net9.0-windows)
 tests/
-  DesktopEngine.Tests/                   # xUnit (net8.0-windows)
+  DesktopEngine.Tests/                   # xUnit (net9.0-windows)
 .claude/
   CLAUDE.md                              # how to run the harness modes + M0 conventions
   skills/desktop-engine/run/SKILL.md
@@ -58,13 +58,13 @@ Expected: prints `8.0.x` (or higher). If missing, install the .NET 8 SDK before 
 ```bash
 cd "G:/Claude/Desktop Engine"
 dotnet new sln -n DesktopEngine
-dotnet new classlib -n DesktopEngine.Platform.Abstractions -o src/DesktopEngine.Platform.Abstractions -f net8.0
-dotnet new classlib -n DesktopEngine.Scripting           -o src/DesktopEngine.Scripting           -f net8.0
-dotnet new classlib -n DesktopEngine.Platform.Windows    -o src/DesktopEngine.Platform.Windows    -f net8.0-windows
-dotnet new classlib -n DesktopEngine.Harness             -o src/DesktopEngine.Harness             -f net8.0-windows
-dotnet new console  -n DesktopEngine.Host                -o src/DesktopEngine.Host                -f net8.0-windows
-dotnet new winforms -n HarnessVictim                     -o tools/HarnessVictim                   -f net8.0-windows
-dotnet new xunit    -n DesktopEngine.Tests               -o tests/DesktopEngine.Tests             -f net8.0-windows
+dotnet new classlib -n DesktopEngine.Platform.Abstractions -o src/DesktopEngine.Platform.Abstractions -f net9.0
+dotnet new classlib -n DesktopEngine.Scripting           -o src/DesktopEngine.Scripting           -f net9.0
+dotnet new classlib -n DesktopEngine.Platform.Windows    -o src/DesktopEngine.Platform.Windows    -f net9.0-windows
+dotnet new classlib -n DesktopEngine.Harness             -o src/DesktopEngine.Harness             -f net9.0-windows
+dotnet new console  -n DesktopEngine.Host                -o src/DesktopEngine.Host                -f net9.0-windows
+dotnet new winforms -n HarnessVictim                     -o tools/HarnessVictim                   -f net9.0-windows
+dotnet new xunit    -n DesktopEngine.Tests               -o tests/DesktopEngine.Tests             -f net9.0-windows
 ```
 
 - [ ] **Step 3: Delete the default `Class1.cs` / template stub files**
@@ -763,7 +763,7 @@ Replace `src/DesktopEngine.Host/DesktopEngine.Host.csproj` with:
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -1156,7 +1156,7 @@ These are Windows-only test tools (not Core), so OS calls here are allowed by th
 - [ ] **Step 1: Add System.Drawing.Common**
 
 ```bash
-dotnet add src/DesktopEngine.Harness package System.Drawing.Common --version 8.0.10
+dotnet add src/DesktopEngine.Harness package System.Drawing.Common --version 9.0.0
 ```
 
 - [ ] **Step 2: Implement screen capture (region → PNG)**
@@ -1327,7 +1327,7 @@ Confirm `tools/HarnessVictim/HarnessVictim.csproj` contains:
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
@@ -1365,12 +1365,12 @@ Edit `src/DesktopEngine.Harness/DesktopEngine.Harness.csproj` — set `<OutputTy
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="SkiaSharp" Version="2.88.8" />
-    <PackageReference Include="System.Drawing.Common" Version="8.0.10" />
+    <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
   </ItemGroup>
 </Project>
 ```
@@ -1503,8 +1503,8 @@ Expected: `Build succeeded.`
 
 ```bash
 dotnet build -c Debug
-HOST="src/DesktopEngine.Host/bin/Debug/net8.0-windows/DesktopEngine.Host.exe"
-VICTIM="tools/HarnessVictim/bin/Debug/net8.0-windows/HarnessVictim.exe"
+HOST="src/DesktopEngine.Host/bin/Debug/net9.0-windows/DesktopEngine.Host.exe"
+VICTIM="tools/HarnessVictim/bin/Debug/net9.0-windows/HarnessVictim.exe"
 dotnet run --project src/DesktopEngine.Harness -- verify "$HOST" "$VICTIM" "harness-out/clickthrough.png"
 ```
 
@@ -1589,8 +1589,8 @@ the mouse while it runs — synthetic input shares the real cursor.
 ```
 dotnet build -c Debug
 dotnet run --project src/DesktopEngine.Harness -- verify \
-  "src/DesktopEngine.Host/bin/Debug/net8.0-windows/DesktopEngine.Host.exe" \
-  "tools/HarnessVictim/bin/Debug/net8.0-windows/HarnessVictim.exe" \
+  "src/DesktopEngine.Host/bin/Debug/net9.0-windows/DesktopEngine.Host.exe" \
+  "tools/HarnessVictim/bin/Debug/net9.0-windows/HarnessVictim.exe" \
   "harness-out/clickthrough.png"
 ```
 
@@ -1619,7 +1619,7 @@ Create `.claude/CLAUDE.md`:
 - **No OS calls in Core/Engine.** All OS behavior goes through `DesktopEngine.Platform.Abstractions`
   interfaces; real impls live in `DesktopEngine.Platform.Windows`. P/Invoke, `System.Runtime.InteropServices`,
   and Win32 namespaces must not appear outside `Platform.Windows` and the harness/tools.
-- `Platform.Abstractions` and `Scripting` stay `net8.0` (portable). Windows-bound projects use `net8.0-windows`.
+- `Platform.Abstractions` and `Scripting` stay `net9.0` (portable). Windows-bound projects use `net9.0-windows`.
 - The harness (`DesktopEngine.Harness`) and `tools/` are test tooling — OS calls are allowed there.
 
 ## Harness modes
@@ -1658,8 +1658,8 @@ This is the gate. Do not start M1 until this is filled in with real results from
 dotnet test
 dotnet run --project src/DesktopEngine.Host -- --headless harness-out/headless.png
 dotnet run --project src/DesktopEngine.Harness -- verify \
-  "src/DesktopEngine.Host/bin/Debug/net8.0-windows/DesktopEngine.Host.exe" \
-  "tools/HarnessVictim/bin/Debug/net8.0-windows/HarnessVictim.exe" \
+  "src/DesktopEngine.Host/bin/Debug/net9.0-windows/DesktopEngine.Host.exe" \
+  "tools/HarnessVictim/bin/Debug/net9.0-windows/HarnessVictim.exe" \
   "harness-out/clickthrough.png"
 ```
 Expected: `dotnet test` all green; headless PNG shows the transparent circle; verify prints PASS.
