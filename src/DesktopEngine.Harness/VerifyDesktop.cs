@@ -18,6 +18,12 @@ public static class VerifyDesktop
     /// </summary>
     public static bool Run(string hostExe, string victimExe, string screenshotPath)
     {
+        // Resolve to absolute paths: Win32 CreateProcess (UseShellExecute=false) does not reliably
+        // resolve relative or forward-slash paths, and the skill docs invoke this with relative paths.
+        hostExe = Path.GetFullPath(hostExe);
+        victimExe = Path.GetFullPath(victimExe);
+        screenshotPath = Path.GetFullPath(screenshotPath);
+
         var pipe = "desktopengine-harness-" + Guid.NewGuid().ToString("N");
         var victimLog = Path.Combine(Path.GetTempPath(), "m0-victim.log");
 
@@ -36,6 +42,7 @@ public static class VerifyDesktop
             var (sx, sy) = before.SpriteScreenCenter();
             var (tx, ty) = before.TransparentScreenPoint();
 
+            Thread.Sleep(900); // let Avalonia paint the first GPU frame before screenshotting the live window
             ScreenCapture.CaptureRegion(before.WindowX, before.WindowY, s.Width, s.Height, screenshotPath);
 
             File.WriteAllText(victimLog, "");             // reset victim log
