@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+      <!-- M0 is intentionally DPI-UNAWARE. The verify-desktop harness relies on GetCursorPos,
+           Avalonia Window.Position, and the victim window all sharing one 1:1 coordinate space.
+           Declaring unawareness makes Avalonia's RenderScaling = 1.0 and keeps the naive
+           coordinate math correct on scaled displays. Real PerMonitorV2 DPI handling is M1/M4 work. -->
+      <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">false</dpiAware>
+    </windowsSettings>
+  </application>
+</assembly>
